@@ -46,7 +46,7 @@ public class PullRequestCommentReadWriteTest {
     protected Configuration configuration = new Configuration();
 
     public static void assertContextCommandComment(CommandSupport command, String expectedComment) {
-        String comment = command.createPullRequestComment();
+        String comment = command.createPullRequestComment(null);
 
         String fullExpectedComment = COMMAND_COMMENT_PREFIX + COMMAND_COMMENT_PREFIX_SEPARATOR + expectedComment + "\n";
         assertThat(comment).describedAs("context command comment").isEqualTo(fullExpectedComment);
@@ -70,7 +70,7 @@ public class PullRequestCommentReadWriteTest {
                 COMMAND_COMMENT_INDENT + Strings.join(" ", PUSH_VERSION, "--kind", NPM, dependency, version));
 
 
-        String comment = command.createPullRequestComment();
+        String comment = command.createPullRequestComment(null);
         CompositeCommand parsedCommands = parseCommandComment(comment, 1);
         PushVersionChanges parsedUpdateVersion = CommandAssertions.assertChildIsPushVersionChanges(parsedCommands, 0);
         CommandAssertions.assertPushVersionContext(parsedUpdateVersion, NPM, dependency, version);
@@ -89,7 +89,7 @@ public class PullRequestCommentReadWriteTest {
         assertContextCommandComment(command,
                 COMMAND_COMMENT_INDENT + Strings.join(" ", PUSH_VERSION, "--kind", NPM, dependency1, version1, dependency2, version2));
 
-        String comment = command.createPullRequestComment();
+        String comment = command.createPullRequestComment(null);
         CompositeCommand parsedCommands = parseCommandComment(comment, 1);
         PushVersionChanges parsedUpdateVersion1 = CommandAssertions.assertChildIsPushVersionChanges(parsedCommands, 0);
         CommandAssertions.assertPushVersionContext(parsedUpdateVersion1, NPM, dependency1, version1, dependency2, version2);

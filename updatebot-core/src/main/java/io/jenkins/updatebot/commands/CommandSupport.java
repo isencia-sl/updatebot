@@ -52,7 +52,7 @@ public abstract class CommandSupport {
     private List<LocalRepository> localRepositories;
     private RepositoryConfig repositoryConfig;
 
-    public String createPullRequestComment() {
+    public String createPullRequestComment(CommandContext context) {
         StringBuilder builder = new StringBuilder(COMMAND_COMMENT_PREFIX);
         builder.append(COMMAND_COMMENT_PREFIX_SEPARATOR);
         appendPullRequestComment(builder);

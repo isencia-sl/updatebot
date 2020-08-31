@@ -88,6 +88,14 @@ public class RegexUpdater extends UpdaterSupport {
         
         return answer;
     }
+    
+    public static void main(String[] args) {
+		String regex = "[ \\t]+<target.version>(.+?)<\\/target.version>";
+		Pattern pattern = Pattern.compile(regex);
+		Matcher m = pattern.matcher(" 		<target.version>6.17</target.version>");
+    	System.out.println(m.matches());
+    	
+	}
 
     protected boolean doPushRegex(PushRegexChanges command, CommandContext context, File file, String regex) throws IOException {
         LOG.info("doPushRegex {}", regex);

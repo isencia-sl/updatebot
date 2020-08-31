@@ -47,13 +47,13 @@ public class CompositeCommand extends CommandSupport {
     /**
      * Creates the updatebot command that we add as a comment so that we can re-run the commands later on for rebasing
      */
-    public String createPullRequestComment() {
+    public String createPullRequestComment(CommandContext context) {
         StringBuilder builder = new StringBuilder(COMMAND_COMMENT_PREFIX);
         builder.append(COMMAND_COMMENT_PREFIX_SEPARATOR);
         boolean first = true;
         for (CommandSupport child : getCommands()) {
             builder.append(COMMAND_COMMENT_INDENT);
-            builder.append(child.createPullRequestComment());
+            builder.append(child.createPullRequestComment(context));
             builder.append("\n");
         }
         return builder.toString();

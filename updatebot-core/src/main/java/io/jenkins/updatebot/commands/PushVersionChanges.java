@@ -95,11 +95,12 @@ public class PushVersionChanges extends ModifyFilesCommandSupport {
     protected boolean doProcess(CommandContext context) throws IOException {
         LocalRepository repository = context.getRepository();
         File dir = repository.getDir();
-        LOG.debug("Updating version in: " + dir + " repo: " + repository.getCloneUrl());
+        LOG.info("Updating version in: " + dir + " repo: " + repository.getCloneUrl());
 
         boolean answer = false;
         for (int i = 0; i + 1 < values.size(); i += 2) {
             DependencyVersionChange step = createDependencyVersionChange(i);
+            LOG.info(step.toString());
             if (pushVersionsWithChecks(context, Arrays.asList(step))) {
                 answer = true;
             }

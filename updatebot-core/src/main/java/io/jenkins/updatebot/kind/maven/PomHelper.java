@@ -48,11 +48,13 @@ public class PomHelper {
 
     public static boolean updatePomVersions(List<PomUpdateStatus> pomsToChange, List<DependencyVersionChange> changes) throws IOException {
         Map<String, String> propertyChanges = new TreeMap<>();
+        LOG.info("Trying updating dependencies...");
         for (PomUpdateStatus status : pomsToChange) {
             status.updateVersions(changes, propertyChanges);
         }
 
         if (!propertyChanges.isEmpty()) {
+        	LOG.info("Trying updating properties...");
             for (PomUpdateStatus status : pomsToChange) {
                 status.updateProperties(propertyChanges);
             }

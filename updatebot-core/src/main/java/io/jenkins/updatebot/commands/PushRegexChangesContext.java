@@ -51,6 +51,8 @@ public class PushRegexChangesContext extends CommandContext {
 
     @Override
     public String createCommit() {
+    	if (command.getComment() != null)
+    		return command.getComment()+" "+command.getValue();
         return "fix(regex): update " + command.getRegex() + " to " + command.getValue();
     }
 

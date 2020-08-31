@@ -56,6 +56,16 @@ public abstract class ModifyFilesCommandSupport extends CommandSupport {
 
     @Override
     public void run(CommandContext context) throws IOException {
+	 if (isOpenPullRequests()) {
+	        List<GHPullRequest> pullRequests = PullRequests.getOpenPullRequests(context.gitHubRepository(),(String)null);
+	    	for(GHPullRequest pullRequest : pullRequests) {
+	    		context.setPullRequest(pullRequest);
+	            prepareDirectory(context);
+	            if (doProcess(context) && !context.getConfiguration().isDryRun()) {
+	                gitCommitAndPullRequest(context);
+	            }	    		
+	    	}
+	 } else 
         prepareDirectory(context);
         if (doProcess(context) && !context.getConfiguration().isDryRun()) {
             gitCommitAndPullRequest(context);
@@ -81,8 +91,9 @@ public abstract class ModifyFilesCommandSupport extends CommandSupport {
 
         dir.getParentFile().mkdirs();
 
-        configuration.info(LOG, "Checkout branch: " + branch + " from " + localRepository.getFullName() + " in " + FileHelper.getRelativePathToCurrentDir(dir));
+        configuration.info(LOG, "Checkout branch: " + branch + " from: " + localRepository.getFullName() + " in " + FileHelper.getRelativePathToCurrentDir(dir));
         context.getGit().stashAndCheckoutBranch(dir, branch);
+        configuration.info(LOG, "Checkout completed");
     }
 
     protected boolean doProcess(CommandContext context) throws IOException {
@@ -92,9 +103,13 @@ public abstract class ModifyFilesCommandSupport extends CommandSupport {
     protected void gitCommitAndPullRequest(CommandContext context) throws IOException {
         GHRepository ghRepository = context.gitHubRepository();
         if (ghRepository != null) {
-            List<GHPullRequest> pullRequests = PullRequests.getOpenPullRequests(ghRepository, context.getConfiguration());
-            GHPullRequest pullRequest = findPullRequest(context, pullRequests);
-            processPullRequest(context, ghRepository, pullRequest);
+            if (context.getPullRequest() != null) 
+        		processPullRequest(context, ghRepository, context.getPullRequest());
+            else {
+                List<GHPullRequest> pullRequests = PullRequests.getOpenPullRequests(ghRepository, context.getConfiguration());
+            	GHPullRequest pullRequest = findPullRequest(context, pullRequests);
+	            processPullRequest(context, ghRepository, pullRequest);
+            }
         } else {
             // TODO what to do with vanilla git repos?
         }
@@ -113,7 +128,7 @@ public abstract class ModifyFilesCommandSupport extends CommandSupport {
         context.getGit().setRemoteURL(dir, remoteURL);
 */
 
-        String commandComment = createPullRequestComment();
+        String commandComment = createPullRequestComment(context);
 
         if (pullRequest == null) {
             // Let's resolve Github remote branch from configuration
@@ -142,6 +157,8 @@ public abstract class ModifyFilesCommandSupport extends CommandSupport {
             addIssueClosedCommentIfRequired(context, pullRequest, true);
             pullRequest.setLabels(configuration.getGithubPullRequestLabel());
         } else {
+        	context.info(LOG, "Processing PR " + pullRequest.getHtmlUrl());
+        	
             GHCommitPointer head = pullRequest.getHead();
             String remoteRef = head.getRef();
             String localBranch = remoteRef;
@@ -151,9 +168,7 @@ public abstract class ModifyFilesCommandSupport extends CommandSupport {
             addIssueClosedCommentIfRequired(context, pullRequest, false);
 
             // Let's see if we need to add commits into existing pull request branch
-            if(isUseSinglePullRequest(context)) {
-                pullRequest.comment(commandComment);
-
+            if(isOpenPullRequests() || isUseSinglePullRequest(context)) {
                 // lets add commit to existing pull request branch
                 doCommit(context, dir);
             } else {
@@ -243,7 +258,7 @@ public abstract class ModifyFilesCommandSupport extends CommandSupport {
     }
 
     private boolean doCommit(CommandContext context, File dir, String branch) {
-        String commitComment = context.createCommit();
+        String commitComment = getComment() != null ? getComment() : context.createCommit();
         return context.getGit().commitToBranch(dir, branch, commitComment);
     }
 
@@ -258,8 +273,15 @@ public abstract class ModifyFilesCommandSupport extends CommandSupport {
         String commitComment = context.createCommit();
         return context.getGit().addAndCommit(dir, commitComment);
     }
+    
+    public String getComment() {
+		return null;
+	}
 
-
+    public boolean isOpenPullRequests() {
+		return false;
+	}
+    
     /**
      * Lets try find an existing pull request for previous PRs in GHRepository using context pull request prefix
      *
@@ -284,7 +306,8 @@ public abstract class ModifyFilesCommandSupport extends CommandSupport {
      * @return remote branch name
      */
     protected String resolveRemoteBranch(CommandContext context) {
-
+    	if (context.getPullRequest() != null)
+    		return context.getPullRequest().getHead().getRef();
         // Let's try to find an existing pull request branch if we use single pull requests for repository
         if(isUseSinglePullRequest(context)) {
             try {
@@ -308,7 +331,9 @@ public abstract class ModifyFilesCommandSupport extends CommandSupport {
      * @return remote branch name
      */
     protected String resolveBaseBranch(CommandContext context) {
-
+    	if (context.getPullRequest() != null)
+    		return context.getPullRequest().getHead().getRef();
+    	
         // Let's try to find an existing pull request base branch if we use single pull request mode
         if(isUseSinglePullRequest(context)) {
             try {
@@ -418,8 +443,10 @@ public abstract class ModifyFilesCommandSupport extends CommandSupport {
             Kind kind = entry.getKey();
             List<DependencyVersionChange> changes = entry.getValue();
             Updater updater = kind.getUpdater();
+            parentContext.info(LOG, "Pushing changes " + DependencyVersionChange.describe(changes));
             // lets reuse the parent context for title etc?
             if (updater.pushVersions(parentContext, changes)) {
+            	parentContext.info(LOG, "Changes pushed");
                 answer = true;
             }
         }

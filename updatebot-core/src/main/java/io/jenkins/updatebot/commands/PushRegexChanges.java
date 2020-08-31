@@ -49,10 +49,20 @@ public class PushRegexChanges extends ModifyFilesCommandSupport {
     @Parameter(order = 3, names = {"--previous-line"}, description = "The previous line pattern")
     private String previousLinePattern;
 
-    @Parameter(description = "The file patterns to replace", required = true)
+    @Parameter(order = 4, names = {"--openPullRequests"},description = "Apply to all open pull requests")
+    private boolean openPullRequests;
+
+    @Parameter(order = 5, names = {"--comment"},description = "PR comment")
+    private String comment;
+
+	@Parameter(description = "The file patterns to replace", required = true)
     private List<String> files;
 
-    public PushRegexChanges() {
+    public boolean isOpenPullRequests() {
+		return openPullRequests;
+	}
+
+	public PushRegexChanges() {
     }
 
     public List<String> getRegex() {
@@ -81,6 +91,13 @@ public class PushRegexChanges extends ModifyFilesCommandSupport {
     }
 
     @Override
+    public String createPullRequestComment(CommandContext context) {
+    	if (getComment() != null)
+    		return "Updatebot: "+getComment();
+    	
+    	return super.createPullRequestComment(context);
+    }
+    
     protected boolean doProcess(CommandContext context) throws IOException {
         LocalRepository repository = context.getRepository();
         File dir = repository.getDir();
@@ -89,4 +106,8 @@ public class PushRegexChanges extends ModifyFilesCommandSupport {
         RegexUpdater updater = (RegexUpdater) Kind.REGEX.getUpdater();
         return updater.pushRegex(this, context);
     }
+    
+    public String getComment() {
+		return comment;
+	}
 }
