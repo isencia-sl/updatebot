@@ -15,6 +15,7 @@
  */
 package io.jenkins.updatebot;
 
+import static io.jenkins.updatebot.CommandNames.BUILD;
 import static io.jenkins.updatebot.CommandNames.HELP;
 import static io.jenkins.updatebot.CommandNames.PULL;
 import static io.jenkins.updatebot.CommandNames.PUSH_REGEX;
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.JCommander;
 
+import io.jenkins.updatebot.commands.Build;
 import io.jenkins.updatebot.commands.CommandContext;
 import io.jenkins.updatebot.commands.CommandSupport;
 import io.jenkins.updatebot.commands.Help;
@@ -78,6 +80,7 @@ public class UpdateBot {
      * Parses the command from the given command line arguments or returns null if there is no command found
      */
     public static CommandSupport parseCommand(String[] args, Configuration config, boolean defaultToHelp) {
+    	Build build = new Build();
         PushRegexChanges pushRegexChanges = new PushRegexChanges();
         PushSourceChanges pushSourceChanges = new PushSourceChanges();
         PushVersionChanges pushVersionChanges = new PushVersionChanges();
@@ -97,6 +100,7 @@ public class UpdateBot {
                 .addCommand(PUSH_VERSION, pushVersionChanges)
                 .addCommand(UPDATE, updatePullRequests)
                 .addCommand(UPDATE_LOOP, updatePullRequestLoop)
+                .addCommand(BUILD, build)
                 .build();
         commander.setExpandAtSign(false);
         commander.setProgramName("updatebot");
@@ -130,6 +134,9 @@ public class UpdateBot {
 
                 case UPDATE_LOOP:
                     return updatePullRequestLoop;
+                    
+                case BUILD:
+                    return build;
             }
         }
         if (defaultToHelp) {

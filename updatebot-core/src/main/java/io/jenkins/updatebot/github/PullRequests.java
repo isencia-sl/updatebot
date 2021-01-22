@@ -48,8 +48,8 @@ public class PullRequests {
         List<GHPullRequest> answer = new ArrayList<>();
         if (pullRequests != null) {
             for (GHPullRequest pullRequest : pullRequests) {
-            	LOG.info("Open Pull Request " + pullRequest.getHtmlUrl());
                 if (label == null || GitHubHelpers.hasLabel(Issues.getLabels(pullRequest), label)) {
+                	LOG.info("Processing Pull Request " + pullRequest.getHtmlUrl());
                     answer.add(pullRequest);
                 }
             }

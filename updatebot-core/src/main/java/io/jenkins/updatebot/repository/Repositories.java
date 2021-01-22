@@ -49,9 +49,11 @@ public class Repositories {
 
 
     public static List<LocalRepository> cloneOrPullRepositories(Configuration configuration, RepositoryConfig repositoryConfig) throws IOException {
-        List<LocalRepository> repositories = findRepositories(configuration, repositoryConfig);
-        for (LocalRepository repository : repositories) {
+        List<LocalRepository> repositories = new ArrayList<LocalRepository>();
+        for (LocalRepository repository : findRepositories(configuration, repositoryConfig)) {
             cloneOrPullRepository(configuration, repository);
+            
+            repositories.add(repository);
         }
         return repositories;
     }

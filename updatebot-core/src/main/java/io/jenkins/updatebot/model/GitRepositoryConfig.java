@@ -27,6 +27,7 @@ public class GitRepositoryConfig extends DtoSupport {
     private Boolean excludeUpdateLoop;
     private Dependencies push;
     private Dependencies pull;
+    private String target;
 
     public GitRepositoryConfig() {
     }
@@ -94,5 +95,13 @@ public class GitRepositoryConfig extends DtoSupport {
     public void setExcludeUpdateLoop(Boolean excludeUpdateLoop) {
         this.excludeUpdateLoop = excludeUpdateLoop;
     }
+
+	public String getTarget() {
+		return target;
+	}
+
+	public void setTarget(String target) {
+		this.target = target;
+	}
 
 }
